@@ -21,7 +21,7 @@ public class Meeting {
         this.Duration = duration;
         this.Email = email;
     }
-
+    public int getId() { return Id; }
     public String getDescription() {
         return Description;
     }

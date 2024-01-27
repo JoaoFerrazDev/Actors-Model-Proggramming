@@ -25,6 +25,8 @@ public class GUI extends JFrame {
     private ArrayList<JDateChooser> mainDateChoosers = new ArrayList<>();
     private JLabel selectedDatesLabel;
     private ArrayList<String> textInputValues;
+    private int dateInputsCount = 0;
+    private JPanel secondMenu;
 
 
     public GUI() {
@@ -182,35 +184,31 @@ public class GUI extends JFrame {
     }
     private JPanel createSecondMenu() {
         secondMenuTextField = new JTextField(20);
-        numberOfDatesField = new JTextField(5);
-        JButton generateDatesButton = new JButton("Generate Dates");
-        JCalendar dateCalendar = new JCalendar();
-        JDateChooser dateChooser = new JDateChooser();
-
+        JButton addButton = new JButton("+");  // Button to add date and text input fields
+        JButton removeButton = new JButton("-");  // Button to remove the last date and text input fields
         JButton backToInitialButton = new JButton("Back to Initial Menu");
         saveButton = new JButton("Save");
 
-        // Create a panel to hold the components
-        JPanel panel = new JPanel(new BorderLayout());
-        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        // Create panels to hold the components
+        JPanel secondMenu = new JPanel(new BorderLayout());
+        JPanel inputPanel = new JPanel(new GridLayout(2, 1));  // Divided into 2 sections
+        JPanel generatedInputsPanel = new JPanel(new GridLayout(0, 2));  // Dynamically generated date and text inputs
 
         // Add the inputPanel to the CENTER of the BorderLayout
-        panel.add(inputPanel, BorderLayout.CENTER);
+        secondMenu.add(inputPanel, BorderLayout.NORTH);
 
-        // Add the saveButton to the SOUTH of the BorderLayout
-        panel.add(saveButton, BorderLayout.SOUTH);
+        // Add generatedInputsPanel to the SOUTH of the BorderLayout
+        secondMenu.add(new JScrollPane(generatedInputsPanel), BorderLayout.CENTER);
+
+        // Add buttons to the EAST of the BorderLayout
+        JPanel buttonsPanel = new JPanel(new GridLayout(2, 1));
+        buttonsPanel.add(backToInitialButton);
+        buttonsPanel.add(saveButton);
+        secondMenu.add(buttonsPanel, BorderLayout.SOUTH);
 
         // Add components to the inputPanel
         inputPanel.add(new JLabel("Text Input:"));
         inputPanel.add(secondMenuTextField);
-        inputPanel.add(new JLabel("Number of Dates:"));
-        inputPanel.add(numberOfDatesField);
-        inputPanel.add(generateDatesButton);
-        inputPanel.add(new JLabel("Selected Dates:"));
-
-        // Create a label to display selected dates
-        selectedDatesLabel = new JLabel();
-        inputPanel.add(selectedDatesLabel);
 
         // Add action listeners to the buttons
         backToInitialButton.addActionListener(new ActionListener() {
@@ -227,34 +225,83 @@ public class GUI extends JFrame {
             }
         });
 
-        generateDatesButton.addActionListener(new ActionListener() {
+        // Add action listener to the "+" button
+        addButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                generateDateInputs();
+                addDateAndTextInputFields(generatedInputsPanel);
             }
         });
 
-        return panel;
+        // Add action listener to the "-" button
+        removeButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                removeLastDateAndTextInputFields(generatedInputsPanel);
+            }
+        });
+
+        // Add buttons to the inputPanel
+        inputPanel.add(addButton);  // Add the "+" button
+        inputPanel.add(removeButton);  // Add the "-" button
+
+        return secondMenu;
+    }
+
+    // Helper method to dynamically add date and text input fields
+    private void addDateAndTextInputFields(JPanel generatedInputsPanel) {
+        JDateChooser dateChooser = new JDateChooser();
+        JTextField textInput = new JTextField();
+
+        // Add the new date and text input fields to the existing panel
+        generatedInputsPanel.add(new JLabel("Date " + (dateInputsCount + 1) + ":"));
+        generatedInputsPanel.add(dateChooser);
+        generatedInputsPanel.add(new JLabel("Text Input " + (dateInputsCount + 1) + ":"));
+        generatedInputsPanel.add(textInput);
+
+        // Increment the count for tracking the number of date inputs
+        dateInputsCount++;
+
+        // Refresh the UI
+        revalidate();
+        repaint();
+    }
+
+    // Helper method to remove the last added date and text input fields
+    private void removeLastDateAndTextInputFields(JPanel generatedInputsPanel) {
+        int componentCount = generatedInputsPanel.getComponentCount();
+
+        if (componentCount >= 4) {
+            // Remove the last date input label, date input field, text input label, and text input field
+            generatedInputsPanel.remove(componentCount - 1);
+            generatedInputsPanel.remove(componentCount - 2);
+            generatedInputsPanel.remove(componentCount - 3);
+            generatedInputsPanel.remove(componentCount - 4);
+
+            // Decrement the count for tracking the number of date inputs
+            dateInputsCount--;
+
+            // Refresh the UI
+            revalidate();
+            repaint();
+        }
     }
 
     private void generateDateInputs() {
         try {
-            int numberOfDates = Integer.parseInt(numberOfDatesField.getText());
-
-            // Create a new frame for the second window
-            JFrame dateInputsFrame = new JFrame("Generated Date Inputs");
-            dateInputsFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+            // Increment the dateInputsCount
+            dateInputsCount++;
 
             // Create a panel for date inputs and text inputs in the new frame
-            JPanel dateInputsPanel = new JPanel(new GridLayout(numberOfDates, 2, 5, 5)); // Adjusted layout and spacing
-            JPanel textInputsPanel = new JPanel(new GridLayout(numberOfDates, 1, 5, 5)); // Adjusted layout and spacing
+            JPanel dateInputsPanel = new JPanel(new GridLayout(dateInputsCount, 2, 5, 5)); // Adjusted layout and spacing
+            JPanel textInputsPanel = new JPanel(new GridLayout(dateInputsCount, 1, 5, 5)); // Adjusted layout and spacing
 
             // Create a list for JDateChooser components for the second window
             ArrayList<JDateChooser> secondDateChoosers = new ArrayList<>();
             ArrayList<String> textInputs = new ArrayList<>();
 
             // Generate and add new date inputs (2 for each line) and text inputs to the panels
-            for (int i = 0; i < numberOfDates; i++) {
+            for (int i = 0; i < dateInputsCount; i++) {
                 JDateChooser dateChooser1 = new JDateChooser();
                 JTextField textInput = new JTextField();
 
@@ -282,26 +329,27 @@ public class GUI extends JFrame {
 
                     // Save information with selected dates and text inputs
                     saveInformation(secondMenuTextField, mainDateChoosers, textInputs);
-
-                    // Close the second window
-                    dateInputsFrame.dispose();
                 }
             });
 
-            // Add the dateInputsPanel and textInputsPanel to the frame
-            dateInputsFrame.getContentPane().setLayout(new GridLayout(2, 1, 10, 10)); // Adjusted layout and spacing
-            dateInputsFrame.getContentPane().add(dateInputsPanel);
-            dateInputsFrame.getContentPane().add(textInputsPanel);
+            // Add the dateInputsPanel and textInputsPanel to the existing panel
+            dateInputsPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+            textInputsPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+            inputPanel.add(dateInputsPanel);
+            inputPanel.add(textInputsPanel);
+            inputPanel.add(submitDatesButton);
 
-            // Create a new panel for the button with FlowLayout to place it at the bottom
-            JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-            buttonPanel.add(submitDatesButton);
+            // ScrollPane for the entire inputPanel
+            JScrollPane scrollPane = new JScrollPane(inputPanel);
+            scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
 
-            dateInputsFrame.getContentPane().add(buttonPanel, BorderLayout.SOUTH);
+            // Set the scrollPane as the main content of the second menu
+            secondMenu.removeAll();
+            secondMenu.setLayout(new BorderLayout());
+            secondMenu.add(scrollPane, BorderLayout.CENTER);
+            secondMenu.revalidate();
+            secondMenu.repaint();
 
-            // Set the size and make the frame visible
-            dateInputsFrame.setSize(400, 200); // Adjusted size
-            dateInputsFrame.setVisible(true);
         } catch (NumberFormatException ex) {
             JOptionPane.showMessageDialog(this, "Please enter a valid number.", "Error", JOptionPane.ERROR_MESSAGE);
         }

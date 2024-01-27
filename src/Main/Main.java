@@ -14,6 +14,8 @@ public class Main {
                 GuardianSupervisorStrategy.class.getName(), ConfigParseOptions.defaults().setSyntax(ConfigSyntax.PROPERTIES));
         ActorSystem actorSystem = ActorSystem.create("MeetingSchedulerSystem", configuration);
 
+
+
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {

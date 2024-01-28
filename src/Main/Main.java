@@ -13,14 +13,13 @@ public class Main {
         Config configuration = ConfigFactory.parseString("akka.actor.guardian-supervisor-strategy=" +
                 GuardianSupervisorStrategy.class.getName(), ConfigParseOptions.defaults().setSyntax(ConfigSyntax.PROPERTIES));
         ActorSystem actorSystem = ActorSystem.create("MeetingSchedulerSystem", configuration);
-
-
-
+        GUI gui = new GUI(actorSystem);
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
-                GUI multiMenuGUI = new GUI();
-                multiMenuGUI.setVisible(true);
+                SwingUtilities.invokeLater(() -> {
+                    gui.createAndShowGUI(actorSystem);
+                });
             }
         });
     }

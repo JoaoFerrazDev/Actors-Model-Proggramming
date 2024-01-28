@@ -25,19 +25,23 @@ public class ScheduleActor extends AbstractActor {
                 .build();
     }
 
-    public void handleScheduleMeeting(Meeting meeting) {
+    private void handleScheduleMeeting(Meeting meeting) {
         ArrayList<Participant> participants = meeting.getParticipants();
         ArrayList<Date> commonDates =  new ArrayList<Date>(participants.get(0).getAvailableDates());
         for (int i = 1; i < participants.size(); i++) {
             commonDates.retainAll(participants.get(i).getAvailableDates());
         }
 
-        boolean isAvailable = commonDates.isEmpty();
-        if(!isAvailable) {
+        boolean isAvailable = !commonDates.isEmpty();
+        if(isAvailable) {
             Date commonDate = commonDates.get(0);
+
+            for(Participant p : meeting.getParticipants()){
+                p.getAvailableDates().remove(commonDate);
+                p.setAvailableDates(p.getAvailableDates());
+            }
             System.out.println("Available date for everyone : " + commonDate);
-            ScheduleDto scheduledMeeting = new ScheduleDto(meeting, commonDate);
-            getSelf().tell(scheduledMeeting, );
+            getSender().tell(commonDate, self());
         }
         else
             throw new RuntimeException();

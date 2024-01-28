@@ -1,5 +1,7 @@
 package actor;
 
+import DTOs.MeetingDto;
+import DTOs.ScheduleDto;
 import akka.actor.AbstractActor;
 import models.Meeting;
 import models.Participant;
@@ -13,18 +15,22 @@ import java.util.Date;
 public class ReportActor extends AbstractActor {
     @Override
     public Receive createReceive() {
-        return null;
+        return receiveBuilder()
+                .match(ScheduleDto.class, this::handleMeetingFile)
+                .match(Integer.class, this::handleMeetingInfo)
+                .build();
     }
 
-    public void writeMeetingInfo(Meeting meeting){
+    private void handleMeetingFile(ScheduleDto scheduleDto){
         try {
-            File meetingFile = new File(meeting.getId() + ".txt");
-            FileWriter fileWriter = new FileWriter(meeting.getId() + ".txt");
-            fileWriter.write(meeting.getDescription());
-            fileWriter.write(meeting.getDuration().toString());
-            fileWriter.write(meeting.getLocalization());
-            fileWriter.write(meeting.getEmail());
-            for (Participant p: meeting.getParticipants()){
+            File meetingFile = new File(scheduleDto.Meeting.getId() + ".txt");
+            FileWriter fileWriter = new FileWriter(scheduleDto.Meeting.getId() + ".txt");
+            fileWriter.write(scheduleDto.Meeting.getDescription());
+            fileWriter.write(scheduleDto.Meeting.getDuration().toString());
+            fileWriter.write(scheduleDto.Meeting.getLocalization());
+            fileWriter.write(scheduleDto.Meeting.getEmail());
+            fileWriter.write(scheduleDto.ScheduledDate.toString());
+            for (Participant p: scheduleDto.Meeting.getParticipants()){
                 fileWriter.write(p.getEmail());
                 fileWriter.write("Datas disponíveis");
                 for (Date d: p.getAvailableDates()) {
@@ -34,5 +40,8 @@ public class ReportActor extends AbstractActor {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+    private void handleMeetingInfo(int id){
+
     }
 }

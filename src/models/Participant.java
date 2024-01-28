@@ -7,6 +7,10 @@ public class Participant {
     private String Email;
     private ArrayList<Date> AvailableDates;
 
+    public Participant(String email, ArrayList<Date> availableDates) {
+        Email = email;
+        AvailableDates = availableDates;
+    }
 
     public String getEmail() {
         return Email;

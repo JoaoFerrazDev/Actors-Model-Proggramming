@@ -24,7 +24,7 @@ public class MeetingActor extends AbstractActor {
     public static ArrayList<Meeting> meetings;
 
     public MeetingActor() {
-        meetings = new ArrayList<Meeting>();
+        meetings = new ArrayList<>();
     }
     @Override
     public Receive createReceive() {
@@ -33,12 +33,6 @@ public class MeetingActor extends AbstractActor {
                 .match(Meeting.class, this::handleScheduleMeeting)
                 .match(MeetingParticipant.class, this::handleParticipantInMeeting)
                 .match(Integer.class, this::handleMeetingInformation)
-                .match(String.class, s -> s.equals("alive?"), s -> {
-                    getSender().tell(this.getClass().getName() + " is alive!", self());
-                })
-                .match(String.class, s -> !s.equals("alive?"), s -> {
-                    getSender().tell(new Status.Failure(new Exception("Invalid command.")), self());
-                })
                 .build();
     }
 
@@ -67,7 +61,8 @@ public class MeetingActor extends AbstractActor {
         reportActor.tell(scheduleDto, self());
     }
     private void handleMeetingInformation(int id) {
-
+        ActorRef scheduleActor = getOrCreateActor(ScheduleActor.class, "scheduleActor");
+        scheduleActor.forward(id, this.context());
     }
     private ActorRef getOrCreateActor(Class<?> clazz, String name)
     {

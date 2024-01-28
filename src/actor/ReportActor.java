@@ -1,15 +1,12 @@
 package actor;
 
-import DTOs.MeetingDto;
 import DTOs.ScheduleDto;
 import akka.actor.AbstractActor;
-import models.Meeting;
 import models.Participant;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.util.Date;
 
 public class ReportActor extends AbstractActor {
@@ -23,7 +20,7 @@ public class ReportActor extends AbstractActor {
 
     private void handleMeetingFile(ScheduleDto scheduleDto){
         try {
-            File meetingFile = new File(scheduleDto.Meeting.getId() + ".txt");
+            File meetingFile = new File("C:\\Users\\jferr\\Desktop\\PA\\TP2\\Files");
             FileWriter fileWriter = new FileWriter(scheduleDto.Meeting.getId() + ".txt");
             fileWriter.write(scheduleDto.Meeting.getDescription());
             fileWriter.write(scheduleDto.Meeting.getDuration().toString());

@@ -4,18 +4,20 @@ import java.util.ArrayList;
 import java.util.Date;
 
 public class Meeting {
-    private static int Id;
+    private int Id;
     private String Description;
     private String Localization;
     private Date Duration;
     private String Email;
     private ArrayList<Participant> Participants;
+    private static int IdCounter;
 
     public Meeting(String description,
                    String localization,
                    Date duration,
                    String email) {
-        Id++;
+        Id = IdCounter;
+        IdCounter++;
         this.Description = description;
         this.Localization = localization;
         this.Duration = duration;

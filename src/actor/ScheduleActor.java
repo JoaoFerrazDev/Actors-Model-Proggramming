@@ -1,7 +1,5 @@
 package actor;
 
-import DTOs.MeetingDto;
-import DTOs.ScheduleDto;
 import akka.actor.AbstractActor;
 import akka.actor.Status;
 import models.Meeting;
@@ -16,18 +14,12 @@ public class ScheduleActor extends AbstractActor {
     public Receive createReceive() {
         return receiveBuilder()
                 .match(Meeting.class, this::handleScheduleMeeting)
-                .match(String.class, s -> s.equals("alive?"), s -> {
-                    getSender().tell(this.getClass().getName() + " is alive!", self());
-                })
-                .match(String.class, s -> !s.equals("alive?"), s -> {
-                    getSender().tell(new Status.Failure(new Exception("Invalid command.")), self());
-                })
                 .build();
     }
 
     private void handleScheduleMeeting(Meeting meeting) {
         ArrayList<Participant> participants = meeting.getParticipants();
-        ArrayList<Date> commonDates =  new ArrayList<Date>(participants.get(0).getAvailableDates());
+        ArrayList<Date> commonDates =  new ArrayList<>(participants.get(0).getAvailableDates());
         for (int i = 1; i < participants.size(); i++) {
             commonDates.retainAll(participants.get(i).getAvailableDates());
         }

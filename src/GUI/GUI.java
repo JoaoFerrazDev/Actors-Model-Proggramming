@@ -5,6 +5,7 @@ import actor.MeetingActor;
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
+import akka.pattern.Patterns;
 import com.toedter.calendar.JCalendar;
 import com.toedter.calendar.JDateChooser;
 import models.Meeting;
@@ -16,9 +17,13 @@ import java.awt.event.ActionListener;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.concurrent.CompletionStage;
+import java.util.concurrent.ExecutionException;
 
 public class GUI extends JFrame {
     private final ActorRef meetingActor;
+    private ArrayList<JLabel> idLabels;
+    private JPanel mainPanel;
 
     public GUI(ActorSystem actorSystem) {
         this.meetingActor = actorSystem.actorOf(Props.create(MeetingActor.class), "meetingActor");
@@ -29,22 +34,8 @@ public class GUI extends JFrame {
         frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
 
         // Create a JPanel to hold the components
-        JPanel mainPanel = new JPanel(new GridLayout(MeetingActor.meetings.size(), 2, 10, 10));
-
-        for (Meeting meeting : MeetingActor.meetings) {
-            JLabel messageLabel = new JLabel(String.valueOf(meeting.getId()));
-            mainPanel.add(messageLabel);
-
-            JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-
-            for (int i = 1; i <= 3; i++) {
-                JButton button = new JButton("Button " + i);
-                button.addActionListener(createButtonActionListener("message", i));
-                buttonPanel.add(button);
-            }
-
-            mainPanel.add(buttonPanel);
-        }
+        mainPanel = new JPanel(new GridLayout(MeetingActor.meetings.size(), 2, 10, 10));
+        updateMainPanelMeetings();
 
         JButton createMeetingButton = new JButton("Create Meeting");
         createMeetingButton.addActionListener(e -> openCreateMeetingWindow());
@@ -70,11 +61,10 @@ public class GUI extends JFrame {
 
     private void openAddParticipantWindow() {
         JFrame participantFrame = new JFrame("Add Participant");
-        participantFrame.setSize(300, 150);
+        participantFrame.setSize(300, 250);
         participantFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
-        JPanel panel = new JPanel();
-        panel.setLayout(new GridLayout(2, 2));
+        JPanel panel = new JPanel(new GridLayout(2,1, 10, 10));
 
         JTextField nameField = new JTextField();
         JDateChooser dateChooser = new JDateChooser();
@@ -84,17 +74,19 @@ public class GUI extends JFrame {
         panel.add(new JLabel("Date:"));
         panel.add(dateChooser);
 
+        JPanel buttonPanel = new JPanel();
         JButton addButton = new JButton("Add");
+        buttonPanel.add(addButton);
         addButton.addActionListener(e -> {
             String name = nameField.getText();
             String selectedDate = dateChooser.getDate().toString();
             //meetingActor.tell(new AddParticipantMessage(name, selectedDate), ActorRef.noSender());
             participantFrame.dispose();
         });
+        participantFrame.getContentPane().setLayout(new BorderLayout());
+        participantFrame.getContentPane().add(new JScrollPane(panel), BorderLayout.CENTER);
+        participantFrame.getContentPane().add(buttonPanel, BorderLayout.SOUTH);
 
-        panel.add(addButton);
-
-        participantFrame.getContentPane().add(panel);
         participantFrame.setVisible(true);
     }
 
@@ -103,7 +95,7 @@ public class GUI extends JFrame {
         createMeetingFrame.setSize(600, 400);
         createMeetingFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
-        JPanel panel = new JPanel();
+        JPanel panel = new JPanel(new GridLayout(0, 4));
 
         JTextField descriptionField = new JTextField();
         JTextField localizationField = new JTextField();
@@ -125,13 +117,44 @@ public class GUI extends JFrame {
             String localization = localizationField.getText();
             String email = emailField.getText();
             Date duration = dateChooser.getDate();
-            meetingActor.tell(new MeetingDto(description,localization,duration,email), ActorRef.noSender());
+            java.time.Duration timeout = java.time.Duration.ofSeconds(5);
+            CompletionStage<Object> result = Patterns.ask(meetingActor, new MeetingDto(description,localization,duration,email), timeout);
+            try {
+                int id = (int) result.toCompletableFuture().get();
+                System.out.println("O Id da reunião criada é : " + id);
+            } catch (InterruptedException | ExecutionException ex) {
+                throw new RuntimeException(ex);
+            }
+            updateMainPanelMeetings();
             createMeetingFrame.dispose();
         });
-
-        panel.add(addButton);
-
+        panel.add(addButton, BorderLayout.SOUTH);
         createMeetingFrame.getContentPane().add(panel);
         createMeetingFrame.setVisible(true);
+    }
+
+    private void updateMainPanelMeetings() {
+        System.out.println(MeetingActor.meetings.size());
+        mainPanel.removeAll();
+        for (Meeting meeting : MeetingActor.meetings) {
+            JLabel messageLabel = new JLabel("Reunião número : " + meeting.getId());
+            mainPanel.add(messageLabel);
+
+            JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+
+            JButton addParticipantButton = new JButton("Add Participant");
+            addParticipantButton.addActionListener(e -> openAddParticipantWindow());
+            buttonPanel.add(addParticipantButton);
+            JButton scheduleMeetingButton = new JButton("Schedule Meeting");
+            scheduleMeetingButton.addActionListener(e -> openAddParticipantWindow());
+            buttonPanel.add(scheduleMeetingButton);
+            JButton printMeetingInfoButton = new JButton("Print Meeting Info");
+            printMeetingInfoButton.addActionListener(e -> openAddParticipantWindow());
+            buttonPanel.add(printMeetingInfoButton);
+
+            mainPanel.add(buttonPanel);
+        }
+        mainPanel.revalidate();
+        mainPanel.repaint();
     }
 }

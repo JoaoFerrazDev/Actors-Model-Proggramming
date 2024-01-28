@@ -1,5 +1,6 @@
 package GUI;
 
+import DTOs.MeetingDto;
 import actor.MeetingActor;
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
@@ -45,11 +46,11 @@ public class GUI extends JFrame {
             mainPanel.add(buttonPanel);
         }
 
-        JButton addMeetingButton = new JButton("Create Meeting");
-        addMeetingButton.addActionListener(e -> openAddParticipantWindow());
+        JButton createMeetingButton = new JButton("Create Meeting");
+        createMeetingButton.addActionListener(e -> openCreateMeetingWindow());
 
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        buttonPanel.add(addMeetingButton);
+        buttonPanel.add(createMeetingButton);
 
         frame.getContentPane().setLayout(new BorderLayout());
         frame.getContentPane().add(new JScrollPane(mainPanel), BorderLayout.CENTER);
@@ -95,5 +96,42 @@ public class GUI extends JFrame {
 
         participantFrame.getContentPane().add(panel);
         participantFrame.setVisible(true);
+    }
+
+    private void openCreateMeetingWindow() {
+        JFrame createMeetingFrame = new JFrame("Add Meeting");
+        createMeetingFrame.setSize(600, 400);
+        createMeetingFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+
+        JPanel panel = new JPanel();
+
+        JTextField descriptionField = new JTextField();
+        JTextField localizationField = new JTextField();
+        JTextField emailField = new JTextField();
+        JDateChooser dateChooser = new JDateChooser();
+
+        panel.add(new JLabel("Description:"));
+        panel.add(descriptionField);
+        panel.add(new JLabel("Localization:"));
+        panel.add(localizationField);
+        panel.add(new JLabel("Email:"));
+        panel.add(emailField);
+        panel.add(new JLabel("Duration:"));
+        panel.add(dateChooser);
+
+        JButton addButton = new JButton("Create Meeting");
+        addButton.addActionListener(e -> {
+            String description = descriptionField.getText();
+            String localization = localizationField.getText();
+            String email = emailField.getText();
+            Date duration = dateChooser.getDate();
+            meetingActor.tell(new MeetingDto(description,localization,duration,email), ActorRef.noSender());
+            createMeetingFrame.dispose();
+        });
+
+        panel.add(addButton);
+
+        createMeetingFrame.getContentPane().add(panel);
+        createMeetingFrame.setVisible(true);
     }
 }

@@ -126,6 +126,8 @@ public class GUI extends JFrame {
         removeLastButton.addActionListener(e -> {
            panel.remove(panel.getComponentCount() - 1);
            panel.remove(panel.getComponentCount() - 1);
+           panel.remove(panel.getComponentCount() - 1);
+           panel.remove(panel.getComponentCount() - 1);
            listDates.removeLast();
            listHours.removeLast();
             participantFrame.revalidate();

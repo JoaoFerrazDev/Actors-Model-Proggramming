@@ -99,7 +99,6 @@ public class GUI extends JFrame {
                     dates.add(combineDateAndTime(selectedDate, selectedHour));
                 }
             }
-            System.out.println("id meeting:" + meeting.getId());
             boolean isCreated;
             java.time.Duration timeout = java.time.Duration.ofSeconds(50);
             CompletionStage<Object> result = Patterns.ask(meetingActor, new MeetingParticipant(meeting,email, dates), timeout);
@@ -117,7 +116,7 @@ public class GUI extends JFrame {
             JTextField newHourField = new JTextField();
             panel.add(new JLabel("Date:"));
             panel.add(newDateChooser);
-            panel.add(new JTextField("Hour:"));
+            panel.add(new JLabel("Hour:"));
             panel.add(newHourField);
             listDates.add(newDateChooser);
             listHours.add(newHourField);
@@ -197,7 +196,6 @@ public class GUI extends JFrame {
             CompletionStage<Object> result = Patterns.ask(meetingActor, new MeetingDto(description,localization,duration,email), timeout);
             try {
                 int id = (int) result.toCompletableFuture().get();
-                System.out.println("O Id da reunião criada é : " + id);
             } catch (InterruptedException | ExecutionException ex) {
                 throw new RuntimeException(ex);
             }
@@ -211,7 +209,6 @@ public class GUI extends JFrame {
     }
 
     private void updateMainPanelMeetings() {
-        System.out.println(MeetingActor.meetings.size());
         mainPanel.removeAll();
         for (Meeting meeting : MeetingActor.meetings) {
             StringBuilder message = new StringBuilder("Reunião número: " + meeting.getId() + " / Participantes: ");

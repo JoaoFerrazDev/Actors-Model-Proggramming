@@ -44,7 +44,6 @@ public class MeetingActor extends AbstractActor {
         getSender().tell(meeting.getId(), self());
     }
     private void handleParticipantInMeeting(MeetingParticipant meetingParticipant) {
-        System.out.println("meeting participant" + meetingParticipant.Meeting.getId());
         if(meetingParticipant.Meeting.getParticipants().stream().anyMatch(participant -> Objects.equals(participant.getEmail(), meetingParticipant.Email))) {
             throw new RuntimeException("Duplicate participant");
         }

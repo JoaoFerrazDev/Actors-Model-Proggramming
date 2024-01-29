@@ -87,6 +87,8 @@ public class GUI extends JFrame {
         buttonPanel.add(addButton);
         buttonPanel.add(addMoreButton);
         buttonPanel.add(removeLastButton);
+
+        //Adicionar participante
         addButton.addActionListener(e -> {
             String email = emailField.getText();
             ArrayList<Date> dates = new ArrayList<>();
@@ -109,7 +111,7 @@ public class GUI extends JFrame {
             if(isCreated) updateMainPanelMeetings();
             participantFrame.dispose();
         });
-
+        //Adicionar e remover inputs das datas disponiveis
         addMoreButton.addActionListener(e -> {
             JDateChooser newDateChooser = new JDateChooser();
             panel.add(new JLabel("Date:"));
@@ -177,6 +179,7 @@ public class GUI extends JFrame {
         panel.add(durationLabel);
         panel.add(dateChooser);
 
+        //Criar meeting
         JButton addButton = new JButton("Create Meeting");
         addButton.addActionListener(e -> {
             String description = descriptionField.getText();
@@ -204,7 +207,6 @@ public class GUI extends JFrame {
         System.out.println(MeetingActor.meetings.size());
         mainPanel.removeAll();
         for (Meeting meeting : MeetingActor.meetings) {
-            System.out.println("count" + meeting.getParticipants().size());
             StringBuilder message = new StringBuilder("Reunião número: " + meeting.getId() + " / Participantes: ");
             for(Participant p : meeting.getParticipants()) {
                 message.append(p.getEmail()).append(", ");

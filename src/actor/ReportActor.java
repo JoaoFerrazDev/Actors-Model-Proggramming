@@ -40,7 +40,6 @@ public class ReportActor extends AbstractActor {
         }
     }
     private void handleMeetingInfo(int id){
-        System.out.println("Cheguei!");
         try {
             try (BufferedReader reader = new BufferedReader(new FileReader( "Files\\" + id + ".txt"))) {
                 String line;

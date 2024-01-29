@@ -69,9 +69,8 @@ public class MeetingActor extends AbstractActor {
         reportActor.tell(scheduleDto, self());
     }
     private void handleMeetingInformation(int id) {
-        System.out.println("Here : " + id);
-        ActorRef scheduleActor = getOrCreateActor(ScheduleActor.class, "scheduleActor");
-        scheduleActor.forward(id, this.context());
+        ActorRef reportActor = getOrCreateActor(ReportActor.class, "reportActor");
+        reportActor.forward(id, this.context());
     }
     private ActorRef getOrCreateActor(Class<?> clazz, String name)
     {

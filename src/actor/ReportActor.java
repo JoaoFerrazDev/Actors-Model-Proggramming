@@ -4,10 +4,7 @@ import DTOs.ScheduleDto;
 import akka.actor.AbstractActor;
 import models.Participant;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.time.LocalDate;
 import java.util.Date;
 
@@ -43,6 +40,16 @@ public class ReportActor extends AbstractActor {
         }
     }
     private void handleMeetingInfo(int id){
-
+        System.out.println("Cheguei!");
+        try {
+            try (BufferedReader reader = new BufferedReader(new FileReader( "Files\\" + id + ".txt"))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    System.out.println(line);
+                }
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

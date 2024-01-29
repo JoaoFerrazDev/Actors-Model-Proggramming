@@ -20,6 +20,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ExecutionException;
@@ -231,29 +232,22 @@ public class GUI extends JFrame {
         mainPanel.repaint();
     }
 
-    private Date combineDateAndTime(Date dateWithoutTime, String timeString) {
+    private static Date combineDateAndTime(Date date, String timeString) {
         try {
-            // Create a SimpleDateFormat for parsing the time
-            System.out.println("Time String: " + timeString);
-            SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm:ss");
-
-            // Parse the time string to obtain a Date object with time
+            SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm");
             Date timeDate = timeFormat.parse(timeString);
 
-            // Get the timestamp of the date without time
-            long dateTimestamp = dateWithoutTime.getTime();
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTime(date);
 
-            // Get the timestamp of the timeDate
-            long timeTimestamp = timeDate.getTime();
+            calendar.set(Calendar.HOUR_OF_DAY, timeDate.getHours());
+            calendar.set(Calendar.MINUTE, timeDate.getMinutes());
+            calendar.set(Calendar.SECOND, 0);
+            calendar.set(Calendar.MILLISECOND, 0);
 
-            // Calculate the combined timestamp
-            long combinedTimestamp = dateTimestamp + timeTimestamp % (24 * 60 * 60 * 1000);
-
-            // Create a new Date object with the combined timestamp
-            return new Date(combinedTimestamp);
+            return calendar.getTime();
         } catch (ParseException e) {
             e.printStackTrace();
-            // Handle parsing exception
             return null;
         }
     }

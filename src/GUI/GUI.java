@@ -114,14 +114,21 @@ public class GUI extends JFrame {
         //Adicionar e remover inputs das datas disponiveis
         addMoreButton.addActionListener(e -> {
             JDateChooser newDateChooser = new JDateChooser();
+            JTextField newHourField = new JTextField();
             panel.add(new JLabel("Date:"));
             panel.add(newDateChooser);
+            panel.add(new JTextField("Hour:"));
+            panel.add(newHourField);
             listDates.add(newDateChooser);
+            listHours.add(newHourField);
             participantFrame.revalidate();
             participantFrame.repaint();
         });
         removeLastButton.addActionListener(e -> {
            panel.remove(panel.getComponentCount() - 1);
+           panel.remove(panel.getComponentCount() - 1);
+           listDates.removeLast();
+           listHours.removeLast();
             participantFrame.revalidate();
             participantFrame.repaint();
         });

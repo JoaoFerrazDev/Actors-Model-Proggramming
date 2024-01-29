@@ -9,12 +9,16 @@ import akka.pattern.Patterns;
 import com.toedter.calendar.JCalendar;
 import com.toedter.calendar.JDateChooser;
 import models.Meeting;
+import models.MeetingParticipant;
+import models.Participant;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.concurrent.CompletionStage;
@@ -50,65 +54,126 @@ public class GUI extends JFrame {
         frame.setVisible(true);
     }
 
-    private ActionListener createButtonActionListener(String message, int buttonNumber) {
-        return new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                System.out.println("Message: " + message + ", Button " + buttonNumber + " clicked");
-            }
-        };
-    }
 
-    private void openAddParticipantWindow() {
+
+    private void openAddParticipantWindow(Meeting meeting) {
         JFrame participantFrame = new JFrame("Add Participant");
-        participantFrame.setSize(300, 250);
+        participantFrame.setSize(600, 400);
         participantFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        JPanel buttonPanel = new JPanel();
+        JPanel panel = new JPanel(new GridLayout(buttonPanel.getComponentCount(),1, 10, 10));
 
-        JPanel panel = new JPanel(new GridLayout(2,1, 10, 10));
-
-        JTextField nameField = new JTextField();
+        JTextField emailField = new JTextField();
+        JTextField hourField = new JTextField();
+        ArrayList<JDateChooser> listDates = new ArrayList<JDateChooser>();
+        ArrayList<JTextField> listHours = new ArrayList<JTextField>();
         JDateChooser dateChooser = new JDateChooser();
+        listDates.add(dateChooser);
+        listHours.add(hourField);
 
-        panel.add(new JLabel("Name:"));
-        panel.add(nameField);
+        panel.add(new JLabel("Email:"));
+        panel.add(emailField);
         panel.add(new JLabel("Date:"));
         panel.add(dateChooser);
+        panel.add(new JLabel("Hour:"));
+        panel.add(hourField);
 
-        JPanel buttonPanel = new JPanel();
+
         JButton addButton = new JButton("Add");
+        JButton addMoreButton = new JButton("+");
+        JButton removeLastButton = new JButton("-");
+
         buttonPanel.add(addButton);
+        buttonPanel.add(addMoreButton);
+        buttonPanel.add(removeLastButton);
         addButton.addActionListener(e -> {
-            String name = nameField.getText();
-            String selectedDate = dateChooser.getDate().toString();
-            //meetingActor.tell(new AddParticipantMessage(name, selectedDate), ActorRef.noSender());
+            String email = emailField.getText();
+            ArrayList<Date> dates = new ArrayList<>();
+            for (int i = 0; i < listDates.size(); i++) {
+                Date selectedDate = listDates.get(i).getDate();
+                String selectedHour = listHours.get(i).getText() + ":00";
+                if (selectedDate != null) {
+                    dates.add(combineDateAndTime(selectedDate, selectedHour));
+                }
+            }
+            System.out.println("id meeting:" + meeting.getId());
+            boolean isCreated;
+            java.time.Duration timeout = java.time.Duration.ofSeconds(50);
+            CompletionStage<Object> result = Patterns.ask(meetingActor, new MeetingParticipant(meeting,email, dates), timeout);
+            try {
+                isCreated = (boolean) result.toCompletableFuture().get();
+            } catch (InterruptedException | ExecutionException ex) {
+                throw new RuntimeException(ex);
+            }
+            if(isCreated) updateMainPanelMeetings();
             participantFrame.dispose();
         });
+
+        addMoreButton.addActionListener(e -> {
+            JDateChooser newDateChooser = new JDateChooser();
+            panel.add(new JLabel("Date:"));
+            panel.add(newDateChooser);
+            listDates.add(newDateChooser);
+            participantFrame.revalidate();
+            participantFrame.repaint();
+        });
+        removeLastButton.addActionListener(e -> {
+           panel.remove(panel.getComponentCount() - 1);
+            participantFrame.revalidate();
+            participantFrame.repaint();
+        });
+
+        updateMainPanelMeetings();
         participantFrame.getContentPane().setLayout(new BorderLayout());
         participantFrame.getContentPane().add(new JScrollPane(panel), BorderLayout.CENTER);
         participantFrame.getContentPane().add(buttonPanel, BorderLayout.SOUTH);
-
+        participantFrame.setLocationRelativeTo(null);
         participantFrame.setVisible(true);
     }
+
 
     private void openCreateMeetingWindow() {
         JFrame createMeetingFrame = new JFrame("Add Meeting");
         createMeetingFrame.setSize(600, 400);
         createMeetingFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        JPanel panel = new JPanel(new GridLayout(0, 2, 10, 10));
+        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10)); // Add some padding
 
-        JPanel panel = new JPanel(new GridLayout(0, 4));
+        Dimension textFieldSize = new Dimension(150, 20);
+        Dimension labelFieldSize = new Dimension(50, 20);
 
+        // Description
+        JLabel descriptionLabel = new JLabel("Description:");
+        descriptionLabel.setPreferredSize(labelFieldSize);
         JTextField descriptionField = new JTextField();
-        JTextField localizationField = new JTextField();
-        JTextField emailField = new JTextField();
-        JDateChooser dateChooser = new JDateChooser();
+        descriptionField.setPreferredSize(textFieldSize);
 
-        panel.add(new JLabel("Description:"));
+        // Localization
+        JLabel localizationLabel = new JLabel("Localization:");
+        localizationLabel.setPreferredSize(labelFieldSize);
+        JTextField localizationField = new JTextField();
+        localizationField.setPreferredSize(textFieldSize);
+
+        // Email
+        JLabel emailLabel = new JLabel("Email:");
+        emailLabel.setPreferredSize(labelFieldSize);
+        JTextField emailField = new JTextField();
+        emailField.setPreferredSize(textFieldSize);
+
+        // Duration
+        JLabel durationLabel = new JLabel("Duration:");
+        durationLabel.setPreferredSize(labelFieldSize);
+        JTextField dateChooser = new JTextField();
+        dateChooser.setPreferredSize(textFieldSize);
+
+        // Add components to the panel
+        panel.add(descriptionLabel);
         panel.add(descriptionField);
-        panel.add(new JLabel("Localization:"));
+        panel.add(localizationLabel);
         panel.add(localizationField);
-        panel.add(new JLabel("Email:"));
+        panel.add(emailLabel);
         panel.add(emailField);
-        panel.add(new JLabel("Duration:"));
+        panel.add(durationLabel);
         panel.add(dateChooser);
 
         JButton addButton = new JButton("Create Meeting");
@@ -116,7 +181,7 @@ public class GUI extends JFrame {
             String description = descriptionField.getText();
             String localization = localizationField.getText();
             String email = emailField.getText();
-            Date duration = dateChooser.getDate();
+            int duration = Integer.parseInt(dateChooser.getText());
             java.time.Duration timeout = java.time.Duration.ofSeconds(5);
             CompletionStage<Object> result = Patterns.ask(meetingActor, new MeetingDto(description,localization,duration,email), timeout);
             try {
@@ -130,6 +195,7 @@ public class GUI extends JFrame {
         });
         panel.add(addButton, BorderLayout.SOUTH);
         createMeetingFrame.getContentPane().add(panel);
+        createMeetingFrame.setLocationRelativeTo(null);
         createMeetingFrame.setVisible(true);
     }
 
@@ -137,19 +203,26 @@ public class GUI extends JFrame {
         System.out.println(MeetingActor.meetings.size());
         mainPanel.removeAll();
         for (Meeting meeting : MeetingActor.meetings) {
-            JLabel messageLabel = new JLabel("Reunião número : " + meeting.getId());
+            System.out.println("count" + meeting.getParticipants().size());
+            StringBuilder message = new StringBuilder("Reunião número: " + meeting.getId() + " / Participantes: ");
+            for(Participant p : meeting.getParticipants()) {
+                message.append(p.getEmail()).append(", ");
+            }
+            JLabel messageLabel = new JLabel(message.toString());
             mainPanel.add(messageLabel);
 
             JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-
+            //Add Participant in Meeting
             JButton addParticipantButton = new JButton("Add Participant");
-            addParticipantButton.addActionListener(e -> openAddParticipantWindow());
+            addParticipantButton.addActionListener(e -> openAddParticipantWindow(meeting));
             buttonPanel.add(addParticipantButton);
+            //Schedule Meeting
             JButton scheduleMeetingButton = new JButton("Schedule Meeting");
-            scheduleMeetingButton.addActionListener(e -> openAddParticipantWindow());
+            scheduleMeetingButton.addActionListener(e -> meetingActor.tell(meeting, ActorRef.noSender()));
             buttonPanel.add(scheduleMeetingButton);
+            //Print Meeting on Console
             JButton printMeetingInfoButton = new JButton("Print Meeting Info");
-            printMeetingInfoButton.addActionListener(e -> openAddParticipantWindow());
+            printMeetingInfoButton.addActionListener(e -> meetingActor.tell(meeting.getId(), ActorRef.noSender()));
             buttonPanel.add(printMeetingInfoButton);
 
             mainPanel.add(buttonPanel);
@@ -157,4 +230,32 @@ public class GUI extends JFrame {
         mainPanel.revalidate();
         mainPanel.repaint();
     }
+
+    private Date combineDateAndTime(Date dateWithoutTime, String timeString) {
+        try {
+            // Create a SimpleDateFormat for parsing the time
+            System.out.println("Time String: " + timeString);
+            SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm:ss");
+
+            // Parse the time string to obtain a Date object with time
+            Date timeDate = timeFormat.parse(timeString);
+
+            // Get the timestamp of the date without time
+            long dateTimestamp = dateWithoutTime.getTime();
+
+            // Get the timestamp of the timeDate
+            long timeTimestamp = timeDate.getTime();
+
+            // Calculate the combined timestamp
+            long combinedTimestamp = dateTimestamp + timeTimestamp % (24 * 60 * 60 * 1000);
+
+            // Create a new Date object with the combined timestamp
+            return new Date(combinedTimestamp);
+        } catch (ParseException e) {
+            e.printStackTrace();
+            // Handle parsing exception
+            return null;
+        }
+    }
+
 }

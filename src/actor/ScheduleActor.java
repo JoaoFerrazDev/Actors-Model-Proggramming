@@ -5,6 +5,7 @@ import akka.actor.Status;
 import models.Meeting;
 import models.Participant;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
 
@@ -35,8 +36,11 @@ public class ScheduleActor extends AbstractActor {
             System.out.println("Available date for everyone : " + commonDate);
             getSender().tell(commonDate, self());
         }
-        else
-            throw new RuntimeException();
+        else{
+            System.out.println("no available date");
+            throw new RuntimeException("no available date");
+        }
+
     }
 
 }

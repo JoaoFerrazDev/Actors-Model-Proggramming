@@ -13,6 +13,8 @@ import models.Participant;
 import scala.Array;
 import scala.Option;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Objects;
@@ -42,17 +44,23 @@ public class MeetingActor extends AbstractActor {
         getSender().tell(meeting.getId(), self());
     }
     private void handleParticipantInMeeting(MeetingParticipant meetingParticipant) {
+        System.out.println("meeting participant" + meetingParticipant.Meeting.getId());
         if(meetingParticipant.Meeting.getParticipants().stream().anyMatch(participant -> Objects.equals(participant.getEmail(), meetingParticipant.Email))) {
             throw new RuntimeException("Duplicate participant");
         }
         Participant participant = new Participant(meetingParticipant.Email,meetingParticipant.AvailableDates);
         meetingParticipant.Meeting.addParticipant(participant);
+        getSender().tell(true, self());
     }
 
     private void handleScheduleMeeting(Meeting meeting) throws ExecutionException, InterruptedException {
         ActorRef scheduleActor = getOrCreateActor(ScheduleActor.class, "scheduleActor");
-
-        java.time.Duration timeout = java.time.Duration.ofSeconds(5);
+        for (Participant p : meeting.getParticipants()) {
+            for (Date d : p.getAvailableDates()) {
+                System.out.println("Date: " + d);
+            }
+        }
+        java.time.Duration timeout = java.time.Duration.ofSeconds(10);
         CompletionStage<Object> result = Patterns.ask(scheduleActor, meeting, timeout);
         Date resultValue = (Date) result.toCompletableFuture().get();
 

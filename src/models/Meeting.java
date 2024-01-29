@@ -7,21 +7,23 @@ public class Meeting {
     private int Id;
     private String Description;
     private String Localization;
-    private Date Duration;
+    private int Duration;
     private String Email;
     private ArrayList<Participant> Participants;
     private static int IdCounter;
 
     public Meeting(String description,
                    String localization,
-                   Date duration,
-                   String email) {
+                   int duration,
+                   String email
+                   ) {
         Id = IdCounter;
         IdCounter++;
         this.Description = description;
         this.Localization = localization;
         this.Duration = duration;
         this.Email = email;
+        this.Participants = new ArrayList<>();
     }
     public int getId() { return Id; }
     public String getDescription() {
@@ -40,11 +42,11 @@ public class Meeting {
         Localization = localization;
     }
 
-    public Date getDuration() {
+    public int getDuration() {
         return Duration;
     }
 
-    public void setDuration(Date duration) {
+    public void setDuration(int duration) {
         Duration = duration;
     }
 

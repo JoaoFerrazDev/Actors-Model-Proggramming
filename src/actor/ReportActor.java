@@ -4,9 +4,11 @@ import DTOs.ScheduleDto;
 import akka.actor.AbstractActor;
 import models.Participant;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.Date;
 
 public class ReportActor extends AbstractActor {
@@ -19,23 +21,25 @@ public class ReportActor extends AbstractActor {
     }
 
     private void handleMeetingFile(ScheduleDto scheduleDto){
-        try {
-            File meetingFile = new File("C:\\Users\\jferr\\Desktop\\PA\\TP2\\Files");
-            FileWriter fileWriter = new FileWriter(scheduleDto.Meeting.getId() + ".txt");
-            fileWriter.write(scheduleDto.Meeting.getDescription());
-            fileWriter.write(scheduleDto.Meeting.getDuration().toString());
-            fileWriter.write(scheduleDto.Meeting.getLocalization());
-            fileWriter.write(scheduleDto.Meeting.getEmail());
-            fileWriter.write(scheduleDto.ScheduledDate.toString());
-            for (Participant p: scheduleDto.Meeting.getParticipants()){
-                fileWriter.write(p.getEmail());
-                fileWriter.write("Datas disponíveis");
-                for (Date d: p.getAvailableDates()) {
-                    fileWriter.write(d.toString());
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter("files/" + scheduleDto.Meeting.getId() + ".txt"))) {
+            // Writing Meeting information
+            writer.write("Meeting ID: " + scheduleDto.Meeting.getId() + "\n");
+            writer.write("Description: " + scheduleDto.Meeting.getDescription() + "\n");
+            writer.write("Localization: " + scheduleDto.Meeting.getLocalization() + "\n");
+            writer.write("Duration: " + scheduleDto.Meeting.getDuration() + " minutes\n");
+            writer.write("Email: " + scheduleDto.Meeting.getEmail() + "\n");
+
+            // Writing Participants information
+            for (Participant participant : scheduleDto.Meeting.getParticipants()) {
+                writer.write("Participant: " + participant.getEmail() + "\n");
+                writer.write("Participant Available Dates: \n");
+                for (Date date : participant.getAvailableDates()) {
+                    writer.write(date + "\n");
                 }
             }
+            writer.write("Scheduled Date: " + scheduleDto.ScheduledDate + "\n");
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
         }
     }
     private void handleMeetingInfo(int id){
